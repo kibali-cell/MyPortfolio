@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Management API — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #f0f2f7;
+    --surface:   #ffffff;
+    --surface2:  #f7f8fc;
+    --border:    rgba(0,0,0,0.07);
+    --border2:   rgba(0,0,0,0.11);
+
+    --teal:      #0a9e72;
+    --teal-dim:  rgba(10,158,114,0.08);
+    --teal-glow: rgba(10,158,114,0.18);
+
+    --blue:      #1a72cc;
+    --blue-dim:  rgba(26,114,204,0.08);
+
+    --amber:     #c07800;
+    --amber-dim: rgba(192,120,0,0.08);
+
+    --purple:    #6b44d4;
+    --purple-dim:rgba(107,68,212,0.08);
+
+    --muted:     #8a93a8;
+    --text:      #1a1e2e;
+    --text-dim:  #6b7590;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+
+  .canvas {
+    width: 1280px;
+    min-height: 720px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 48px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* subtle grid bg */
+  .canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 44px;
+    position: relative;
+    z-index: 1;
+  }
+  .title-block { }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--teal);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .title span { color: var(--teal); }
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+  .badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: flex-start;
+    max-width: 380px;
+  }
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .badge-teal  { color: var(--teal);   border-color: rgba(31,212,160,0.3); background: var(--teal-dim); }
+  .badge-blue  { color: var(--blue);   border-color: rgba(77,168,255,0.3); background: var(--blue-dim); }
+  .badge-amber { color: var(--amber);  border-color: rgba(245,166,35,0.3); background: var(--amber-dim); }
+  .badge-purple{ color: var(--purple); border-color: rgba(157,124,255,0.3); background: var(--purple-dim); }
+
+  /* ── DIAGRAM GRID ── */
+  .diagram {
+    display: grid;
+    grid-template-columns: 180px 1fr 220px;
+    grid-template-rows: auto auto auto;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── NODES ── */
+  .node {
+    border-radius: 12px;
+    border: 1px solid var(--border2);
+    padding: 16px 20px;
+    position: relative;
+    background: var(--surface2);
+  }
+  .node-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .node-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .node-teal   { border-color: rgba(31,212,160,0.25); background: rgba(31,212,160,0.05); }
+  .node-blue   { border-color: rgba(77,168,255,0.25); background: rgba(77,168,255,0.05); }
+  .node-amber  { border-color: rgba(245,166,35,0.25); background: rgba(245,166,35,0.05); }
+  .node-purple { border-color: rgba(157,124,255,0.25); background: rgba(157,124,255,0.05); }
+
+  .node-teal   .node-label { color: var(--teal); }
+  .node-blue   .node-label { color: var(--blue); }
+  .node-amber  .node-label { color: var(--amber); }
+  .node-purple .node-label { color: var(--purple); }
+
+  /* dot accent */
+  .node::before {
+    content: '';
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .node-teal::before   { background: var(--teal); }
+  .node-blue::before   { background: var(--blue); }
+  .node-amber::before  { background: var(--amber); }
+  .node-purple::before { background: var(--purple); }
+
+  /* ── LAYOUT AREAS ── */
+
+  /* Client — top center */
+  .area-client {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 32px;
+  }
+  .area-client .node { width: 360px; }
+
+  /* Externals — left column */
+  .area-left {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-right: 32px;
+    justify-content: center;
+  }
+
+  /* API Core — center */
+  .area-core {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .core-shell {
+    border: 1px solid rgba(31,212,160,0.2);
+    border-radius: 16px;
+    background: rgba(31,212,160,0.03);
+    padding: 20px;
+  }
+  .core-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--teal);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .core-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(31,212,160,0.15);
+  }
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .module {
+    border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    padding: 12px 14px;
+  }
+  .module-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 3px;
+  }
+  .module-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* Right column — Roles */
+  .area-right {
+    grid-column: 3;
+    grid-row: 2;
+    padding-left: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+  }
+  .roles-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .role-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .role-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .role-name { font-size: 12px; font-weight: 700; }
+  .role-desc { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+
+  /* DB — bottom center */
+  .area-db {
+    grid-column: 2;
+    grid-row: 3;
+    display: flex;
+    justify-content: center;
+    padding-top: 32px;
+  }
+  .area-db .node { width: 360px; }
+
+  /* ── CONNECTORS SVG overlay ── */
+  .connectors {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+  .footer-left {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .footer-left span { color: var(--teal); }
+  .stack-pills {
+    display: flex;
+    gap: 8px;
+  }
+  .stack-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    padding: 3px 9px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+  }
+</style>
+</head>
+<body>
+
+<div class="canvas" id="canvas">
+
+  <!-- SVG connectors drawn after layout -->
+  <svg class="connectors" id="svg-overlay"></svg>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title-block">
+      <div class="eyebrow">// system architecture</div>
+      <div class="title">Travel Management <span>API</span></div>
+      <div class="subtitle">Laravel 9+ · MySQL · REST · JWT Auth · RBAC</div>
+    </div>
+    <div class="badges">
+      <span class="badge badge-teal">PHP 8.0+</span>
+      <span class="badge badge-teal">Laravel 9+</span>
+      <span class="badge badge-blue">MySQL</span>
+      <span class="badge badge-blue">REST API</span>
+      <span class="badge badge-amber">TravelDuqa API</span>
+      <span class="badge badge-amber">Amadeus API</span>
+      <span class="badge badge-purple">JWT Auth</span>
+      <span class="badge badge-purple">RBAC · 3 Roles</span>
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="diagram" id="diagram">
+
+    <!-- CLIENT -->
+    <div class="area-client">
+      <div class="node node-purple" id="node-client">
+        <div class="node-label">Web / Mobile Client</div>
+        <div class="node-sub">React · React Native<br>HTTP Requests · JSON Responses</div>
+      </div>
+    </div>
+
+    <!-- LEFT: External APIs -->
+    <div class="area-left">
+      <div class="node node-amber" id="node-duqa">
+        <div class="node-label">TravelDuqa API</div>
+        <div class="node-sub">Flight search<br>& booking</div>
+      </div>
+      <div class="node node-amber" id="node-amadeus">
+        <div class="node-label">Amadeus API</div>
+        <div class="node-sub">Hotel search<br>& booking</div>
+      </div>
+    </div>
+
+    <!-- CENTER: API Core -->
+    <div class="area-core" id="node-core">
+      <div class="core-shell">
+        <div class="core-title">Laravel API — Core</div>
+        <div class="modules-grid">
+          <div class="module">
+            <div class="module-name">Authentication</div>
+            <div class="module-detail">Login · Register<br>Password reset<br>JWT tokens</div>
+          </div>
+          <div class="module">
+            <div class="module-name">Trips & Bookings</div>
+            <div class="module-detail">CRUD trips<br>Flight + hotel book<br>Car rentals</div>
+          </div>
+          <div class="module">
+            <div class="module-name">Expenses</div>
+            <div class="module-detail">Track & report<br>Policy compliance<br>Approval flow</div>
+          </div>
+          <div class="module">
+            <div class="module-name">Admin</div>
+            <div class="module-detail">Companies · Depts<br>Policy management<br>User management</div>
+          </div>
+          <div class="module">
+            <div class="module-name">Profile</div>
+            <div class="module-detail">Preferences<br>Notifications<br>Multi-language</div>
+          </div>
+          <div class="module">
+            <div class="module-name">Analytics</div>
+            <div class="module-detail">Spend reports<br>Travel insights<br>Policy stats</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Roles -->
+    <div class="area-right">
+      <div class="roles-label">Access roles</div>
+      <div class="role-item">
+        <div class="role-dot" style="background:#9d7cff;box-shadow:0 0 6px #9d7cff"></div>
+        <div>
+          <div class="role-name" style="color:#9d7cff">Super Admin</div>
+          <div class="role-desc">Multi-company · All perms</div>
+        </div>
+      </div>
+      <div class="role-item">
+        <div class="role-dot" style="background:#1fd4a0;box-shadow:0 0 6px #1fd4a0"></div>
+        <div>
+          <div class="role-name" style="color:#1fd4a0">Travel Admin</div>
+          <div class="role-desc">Policies · Approvals</div>
+        </div>
+      </div>
+      <div class="role-item">
+        <div class="role-dot" style="background:#4da8ff;box-shadow:0 0 6px #4da8ff"></div>
+        <div>
+          <div class="role-name" style="color:#4da8ff">Employee</div>
+          <div class="role-desc">Trips · Expenses · Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DB -->
+    <div class="area-db">
+      <div class="node node-blue" id="node-db">
+        <div class="node-label">Database</div>
+        <div class="node-sub">MySQL · Migrations · Seeders<br>CRUD Operations · Relational data</div>
+      </div>
+    </div>
+
+  </div><!-- /diagram -->
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <span>github.com/</span>yourusername/travel-management-api · MIT License
+    </div>
+    <div class="stack-pills">
+      <span class="stack-pill">Composer</span>
+      <span class="stack-pill">Artisan CLI</span>
+      <span class="stack-pill">Eloquent ORM</span>
+      <span class="stack-pill">Laravel Sanctum</span>
+    </div>
+  </div>
+
+</div><!-- /canvas -->
+
+<script>
+function drawConnectors() {
+  const svg = document.getElementById('svg-overlay');
+  const canvas = document.getElementById('canvas');
+  const cr = canvas.getBoundingClientRect();
+
+  function center(el) {
+    const r = el.getBoundingClientRect();
+    return {
+      x: r.left - cr.left,
+      y: r.top  - cr.top,
+      w: r.width,
+      h: r.height,
+      cx: r.left - cr.left + r.width / 2,
+      cy: r.top  - cr.top  + r.height / 2,
+      top:    r.top  - cr.top,
+      bottom: r.top  - cr.top + r.height,
+      left:   r.left - cr.left,
+      right:  r.left - cr.left + r.width,
+    };
+  }
+
+  svg.setAttribute('viewBox', `0 0 ${cr.width} ${cr.height}`);
+
+  const client  = center(document.getElementById('node-client'));
+  const core    = center(document.getElementById('node-core'));
+  const db      = center(document.getElementById('node-db'));
+  const duqa    = center(document.getElementById('node-duqa'));
+  const amadeus = center(document.getElementById('node-amadeus'));
+
+  const defs = `<defs>
+    <marker id="arr-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#1fd4a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#9d7cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#4da8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f5a623" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>`;
+
+  function line(x1,y1,x2,y2,color,marker,dash='') {
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+      stroke="${color}" stroke-width="1.5" fill="none"
+      ${dash ? `stroke-dasharray="${dash}"` : ''}
+      marker-end="url(#${marker})"/>`;
+  }
+  function path(d, color, marker, dash='') {
+    return `<path d="${d}" stroke="${color}" stroke-width="1.5" fill="none"
+      ${dash ? `stroke-dasharray="${dash}"` : ''}
+      marker-end="url(#${marker})"/>`;
+  }
+  function label(x,y,txt,color) {
+    return `<text x="${x}" y="${y}" fill="${color}" font-size="9.5"
+      font-family="JetBrains Mono, monospace" text-anchor="middle">${txt}</text>`;
+  }
+
+  // Client → Core (downward, solid)
+  const c2cx = client.cx - 30;
+  const c2cy1 = client.bottom;
+  const c2cy2 = core.top;
+  const reqX = c2cx - 28;
+
+  // Core → Client (dashed return)
+  const c2cx2 = client.cx + 30;
+
+  // Client → Core request
+  let lines = defs;
+  lines += line(c2cx, c2cy1, c2cx, c2cy2, '#9d7cff', 'arr-purple');
+  lines += label(c2cx - 30, (c2cy1 + c2cy2)/2, 'HTTP Request', '#9d7cff');
+
+  // Core → Client response
+  lines += line(c2cx2, c2cy2, c2cx2, c2cy1, '#9d7cff', 'arr-purple', '5 4');
+  lines += label(c2cx2 + 36, (c2cy1 + c2cy2)/2, 'JSON Response', '#9d7cff');
+
+  // Core → DB (down)
+  const core2dbx = core.cx - 30;
+  lines += line(core2dbx, core.bottom, core2dbx, db.top, '#4da8ff', 'arr-blue');
+  lines += label(core2dbx - 34, (core.bottom + db.top)/2, 'CRUD ops', '#4da8ff');
+
+  // DB → Core (dashed)
+  const db2corex = core.cx + 30;
+  lines += line(db2corex, db.top, db2corex, core.bottom, '#4da8ff', 'arr-blue', '5 4');
+
+  // TravelDuqa ↔ Core
+  const dqRight = duqa.right;
+  const dqcy = duqa.cy - 8;
+  const coreLeft = core.left;
+  lines += line(dqRight, dqcy, coreLeft, dqcy, '#f5a623', 'arr-amber');
+  lines += line(coreLeft, dqcy + 16, dqRight, dqcy + 16, '#f5a623', 'arr-amber', '5 4');
+
+  // Amadeus ↔ Core — L-route to avoid overlap with TravelDuqa
+  const amRight = amadeus.right;
+  const amcy = amadeus.cy;
+  const midX = coreLeft - 14;
+  lines += path(`M ${amRight} ${amcy} L ${midX} ${amcy} L ${midX} ${core.bottom - 40} L ${coreLeft} ${core.bottom - 40}`, '#f5a623', 'arr-amber');
+  lines += path(`M ${coreLeft} ${core.bottom - 26} L ${midX - 12} ${core.bottom - 26} L ${midX - 12} ${amcy + 14} L ${amRight} ${amcy + 14}`, '#f5a623', 'arr-amber', '5 4');
+
+  svg.innerHTML = lines;
+}
+
+window.addEventListener('load', drawConnectors);
+window.addEventListener('resize', drawConnectors);
+</script>
+</body>
+</html>

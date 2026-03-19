@@ -90,42 +90,6 @@
         padding-bottom: 6rem;
     }
 
-    .contact-content-con{
-        flex-direction: column;
-        .right-contact{
-            margin-left: 0;
-            margin-top: 2.5rem;
-        }
-        
-    }
-    .contact-content-con .right-contact .i-c-2{
-        flex-direction: column;
-    }
-    .contact-content-con .right-contact .i-c-2 :last-child{
-        margin-left: 0;
-        margin-top: 1.5rem;
-    }
-
-    .contact-content-con .right-contact{
-        margin-bottom: 6rem;
-    }
-
-    .contact-item{
-        flex-direction: column;
-        margin: 1rem 0;
-        p{
-            font-size: 15px;
-            color: var(--color-grey-2);
-        }
-        span{
-            font-size: 15px;
-        }
-        .icon{
-            grid-template-columns: 25px 1fr;
-        }
-    }
-
-
     .main-title{
         h2{
             font-size: 2rem;
