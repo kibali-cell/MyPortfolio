@@ -94,6 +94,12 @@ section {
           transform: translateY(0) scale(1);
 }
 
+.sec3 {
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
 .sec4 {
   display: none;
   -webkit-transform: translateY(0) scale(1);
@@ -989,6 +995,12 @@ section {
   }
   .main-title h2 .bg-text {
     font-size: 2.3rem;
+  }
+
+  .sec3 {
+    height: auto;
+    overflow-y: visible;
+    padding-bottom: 6rem !important; /* clears the fixed bottom controls */
   }
 }
 
