@@ -1,3 +1,4 @@
+/* ── Portfolio Section ── */
 .projects {
     display: flex;
     flex-direction: column;
@@ -55,4 +56,65 @@
     color: #fff;
     border-radius: 5px;
     text-decoration: none;
+}
+
+/* ── Tablet (≤ 900px) ── */
+@media (max-width: 900px) {
+    .project,
+    .project.reverse {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .project-img,
+    .project-content {
+        flex: unset;
+        width: 100%;
+    }
+
+    .projects {
+        gap: 3rem;
+    }
+}
+
+/* ── Mobile (≤ 600px) ── */
+@media (max-width: 600px) {
+    .projects {
+        gap: 2.5rem;
+        margin-top: 2rem;
+    }
+
+    .project {
+        gap: 1rem;
+    }
+
+    .project-img img {
+        border-radius: 8px;
+        max-height: 220px;
+        object-fit: cover;
+        object-position: top;
+    }
+
+    .project-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .project-content p {
+        font-size: 0.9rem;
+    }
+
+    .tech span {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        margin: 3px;
+    }
+
+    .btn {
+        padding: 7px 14px;
+        font-size: 0.9rem;
+    }
+
+    .port-text {
+        font-size: 0.95rem;
+    }
 }
