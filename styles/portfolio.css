@@ -1,4 +1,3 @@
-/* ── Portfolio Section ── */
 .projects {
     display: flex;
     flex-direction: column;
@@ -22,30 +21,42 @@
 
 .project-img img {
     width: 100%;
-    border-radius: 10px;
+    max-width: 450px;
+    border-radius: 12px;
     object-fit: cover;
 }
 
 .project-content {
     flex: 1;
+    max-width: 520px;
 }
 
 .project-content h3 {
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 
 .project-content p {
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
     color: #ccc;
+}
+
+.tech {
+    margin: 0.5rem 0 1rem;
 }
 
 .tech span {
     display: inline-block;
     background: #222;
-    padding: 5px 10px;
-    margin: 5px;
-    border-radius: 5px;
+    padding: 4px 10px;
+    margin: 3px;
+    border-radius: 6px;
     font-size: 0.8rem;
+}
+
+.project-links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .btn {
@@ -58,17 +69,22 @@
     text-decoration: none;
 }
 
+.btn.secondary {
+    background: transparent;
+    border: 1px solid #fff;
+}
+
 /* ── Tablet (≤ 900px) ── */
 @media (max-width: 900px) {
     .project,
     .project.reverse {
         flex-direction: column;
         gap: 1.5rem;
+        text-align: center;
     }
 
     .project-img,
     .project-content {
-        flex: unset;
         width: 100%;
     }
 
@@ -91,7 +107,6 @@
     .project-img img {
         border-radius: 8px;
         max-height: 220px;
-        object-fit: cover;
         object-position: top;
     }
 
@@ -106,15 +121,10 @@
     .tech span {
         font-size: 0.75rem;
         padding: 4px 8px;
-        margin: 3px;
     }
 
     .btn {
         padding: 7px 14px;
         font-size: 0.9rem;
-    }
-
-    .port-text {
-        font-size: 0.95rem;
     }
 }
